@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spend Nawaz Sharif's Money</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/google-fonts@3.3.1/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: 'Roboto', sans-serif; background: #f7fafc;}
+    .item-card { transition: transform 0.15s, box-shadow 0.15s;}
+    .item-card:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 10px 24px 0 rgba(0,0,0,0.10);}
+    .btn { transition: background 0.15s;}
+    .btn:active { background: #cbd5e1;}
+    .money-animate { transition: color 0.3s, transform 0.3s;}
+    .spent-bar { transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);}
+    ::selection { background: #27ae60; color: white;}
+  </style>
+</head>
+<body class="min-h-screen relative pb-10">
+  <!-- Header -->
+  <div class="w-full bg-white shadow p-4 flex flex-col md:flex-row items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <img id="avatar" src="https://upload.wikimedia.org/wikipedia/commons/4/46/PrimeMinisterNawazSharif.jpg" class="w-14 h-14 rounded-full object-cover border-4 border-green-300" alt="Nawaz Sharif">
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold text-gray-800">Spend Nawaz Sharif's Money</h1>
+        <span class="text-sm text-gray-500">How fast can you empty his fortune in PKR?</span>
+      </div>
+    </div>
+    <div class="mt-2 md:mt-0 flex flex-col items-end">
+      <span class="text-green-600 text-lg font-bold">Total Wealth: </span>
+      <span id="money" class="text-3xl font-extrabold text-green-700 tracking-tight money-animate">₨45,000,000,000,000</span>
+      <span class="text-xs text-gray-400 italic mt-1">Estimated</span>
+    </div>
+  </div>
+  
+  <!-- Progress Bar -->
+  <div class="w-full max-w-4xl mx-auto mt-6">
+    <div class="w-full bg-gray-300 h-4 rounded-full mb-2">
+      <div id="spentBar" class="h-4 bg-green-500 rounded-full spent-bar" style="width:0%"></div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-500">
+      <div>Spent: <span id="spentDisplay">₨0</span></div>
+      <div>Remaining: <span id="remainingDisplay">₨45,000,000,000,000</span></div>
+    </div>
+  </div>
+  
+  <!-- Items Section -->
+  <div class="max-w-6xl mx-auto px-4 mt-8 grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" id="itemsList">
+    <!-- ITEMS INJECTED HERE -->
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 mt-12 flex flex-col items-center">
+    <button id="resetBtn" class="btn px-6 py-2 bg-gray-100 hover:bg-gray-300 rounded shadow text-lg font-bold text-gray-700 mt-2 flex items-center space-x-2">
+      <i class="fa fa-redo"></i> <span>Reset</span>
+    </button>
+  </div>
+
+  <footer class="absolute left-0 right-0 bottom-0 text-center text-gray-400 text-xs pt-6 pb-4">
+    Inspired by <a href="https://neal.fun/spend/" class="underline">neal.fun</a> | This version uses PKR & Nawaz Sharif for demonstration purposes.
+  </footer>
+  <script>
+    // Conversion and Items Data
+    const PKR_PER_USD = 278;
+    const initialMoney = 45000000000000; // Nawaz's "fictional" wealth in PKR
+
+    // Base items from Spend Bill Gates' Money (approx. USD prices)
+    const baseItems = [
+      { name: "Big Mac", priceUSD: 2, image: "https://neal.fun/spend/images/big-mac.jpg" },
+      { name: "Flip Flops", priceUSD: 3, image: "https://neal.fun/spend/images/flip-flops.jpg" },
+      { name: "Coca-Cola Pack", priceUSD: 5, image: "https://neal.fun/spend/images/coca-cola-pack.jpg" },
+      { name: "Movie Ticket", priceUSD: 12, image: "https://neal.fun/spend/images/movie-ticket.jpg" },
+      { name: "Book", priceUSD: 15, image: "https://neal.fun/spend/images/book.jpg" },
+      { name: "Lobster Dinner", priceUSD: 45, image: "https://neal.fun/spend/images/lobster-dinner.jpg" },
+      { name: "Video Game", priceUSD: 60, image: "https://neal.fun/spend/images/video-game.jpg" },
+      { name: "Amazon Echo", priceUSD: 99, image: "https://neal.fun/spend/images/amazon-echo.jpg" },
+      { name: "Year of Netflix", priceUSD: 100, image: "https://neal.fun/spend/images/year-of-netflix.jpg" },
+      { name: "Air Jordans", priceUSD: 125, image: "https://neal.fun/spend/images/air-jordans.jpg" },
+      { name: "Airpods", priceUSD: 199, image: "https://neal.fun/spend/images/airpods.jpg" },
+      { name: "Gaming Console", priceUSD: 299, image: "https://neal.fun/spend/images/gaming-console.jpg" },
+      { name: "Drone", priceUSD: 350, image: "https://neal.fun/spend/images/drone.jpg" },
+      { name: "Smartphone", priceUSD: 699, image: "https://neal.fun/spend/images/smartphone.jpg" },
+      { name: "Bike", priceUSD: 800, image: "https://neal.fun/spend/images/bike.jpg" },
+      { name: "Kitten", priceUSD: 1500, image: "https://neal.fun/spend/images/kitten.jpg" },
+      { name: "Puppy", priceUSD: 1500, image: "https://neal.fun/spend/images/puppy.jpg" },
+      { name: "Auto Rickshaw", priceUSD: 2300, image: "https://neal.fun/spend/images/auto-rickshaw.jpg" },
+      { name: "Horse", priceUSD: 2500, image: "https://neal.fun/spend/images/horse.jpg" },
+      { name: "Acre of Farmland", priceUSD: 3000, image: "https://neal.fun/spend/images/acre-of-farmland.jpg" },
+      { name: "Designer Handbag", priceUSD: 5500, image: "https://neal.fun/spend/images/designer-handbag.jpg" },
+      { name: "Hot Tub", priceUSD: 6000, image: "https://neal.fun/spend/images/hot-tub.jpg" },
+      { name: "Luxury Wine", priceUSD: 7000, image: "https://neal.fun/spend/images/luxury-wine.jpg" },
+      { name: "Diamond Ring", priceUSD: 10000, image: "https://neal.fun/spend/images/diamond-ring.jpg" },
+      { name: "Jet Ski", priceUSD: 12000, image: "https://neal.fun/spend/images/jet-ski.jpg" },
+      { name: "Rolex", priceUSD: 15000, image: "https://neal.fun/spend/images/rolex.jpg" },
+      { name: "Ford F-150", priceUSD: 30000, image: "https://neal.fun/spend/images/ford-f-150.jpg" },
+      { name: "Tesla", priceUSD: 75000, image: "https://neal.fun/spend/images/tesla.jpg" },
+      { name: "Monster Truck", priceUSD: 150000, image: "https://neal.fun/spend/images/monster-truck.jpg" },
+      { name: "Ferrari", priceUSD: 250000, image: "https://neal.fun/spend/images/ferrari.jpg" },
+      { name: "Single Family Home", priceUSD: 300000, image: "https://neal.fun/spend/images/single-family-home.jpg" },
+      { name: "Gold Bar", priceUSD: 700000, image: "https://neal.fun/spend/images/gold-bar.jpg" },
+      { name: "McDonalds Franchise", priceUSD: 1500000, image: "https://neal.fun/spend/images/mcdonalds-franchise.jpg" },
+      { name: "Superbowl Ad", priceUSD: 5250000, image: "https://neal.fun/spend/images/superbowl-ad.jpg" },
+      { name: "Yacht", priceUSD: 7500000, image: "https://neal.fun/spend/images/yacht.jpg" },
+      { name: "M1 Abrams", priceUSD: 8000000, image: "https://neal.fun/spend/images/m1-abrams.jpg" },
+      { name: "Formula 1 Car", priceUSD: 15000000, image: "https://neal.fun/spend/images/formula-1-car.jpg" },
+      { name: "Apache Helicopter", priceUSD: 31000000, image: "https://neal.fun/spend/images/apache-helicopter.jpg" },
+      { name: "Mansion", priceUSD: 45000000, image: "https://neal.fun/spend/images/mansion.jpg" },
+      { name: "Make a Movie", priceUSD: 100000000, image: "https://neal.fun/spend/images/make-a-movie.jpg" },
+      { name: "Boeing 747", priceUSD: 148000000, image: "https://neal.fun/spend/images/boeing-747.jpg" },
+      { name: "Mona Lisa", priceUSD: 780000000, image: "https://neal.fun/spend/images/mona-lisa.jpg" },
+      { name: "Skyscraper", priceUSD: 850000000, image: "https://neal.fun/spend/images/skyscraper.jpg" },
+      { name: "Cruise Ship", priceUSD: 930000000, image: "https://neal.fun/spend/images/cruise-ship.jpg" },
+      { name: "NBA Team", priceUSD: 2120000000, image: "https://neal.fun/spend/images/nba-team.jpg" }
+    ];
+
+    // 50 custom additional items (some with random image URLs, others with font awesome icons)
+    const moreItems = [
+      // Everyday items
+      { name: "Pizza Slice", pricePKR: 400, image: "https://images.unsplash.com/photo-1519864600265-abb86908b4b2?auto=format&fit=crop&w=300&q=80" },
+      { name: "Chai Cup", pricePKR: 80, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80" },
+      { name: "Shalwar Kameez", pricePKR: 1500, image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=300&q=80" },
+      { name: "Fruit Basket", pricePKR: 900, image: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=300&q=80" },
+      { name: "Football", pricePKR: 1200, image: "https://images.unsplash.com/photo-1509474520651-90a3c1e175d3?auto=format&fit=crop&w=300&q=80" },
+      { name: "Pakistani Flag", pricePKR: 500, image: "https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg" },
+      { name: "Car Wash", pricePKR: 350, image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=300&q=80" },
+      { name: "Phone Card", pricePKR: 200, image: "https://images.unsplash.com/photo-1512499617640-c2f999098c72?auto=format&fit=crop&w=300&q=80" },
+      { name: "Burger", pricePKR: 520, image: "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=300&q=80" },
+      { name: "Ice Cream", pricePKR: 300, image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=300&q=80" },
+
+      // Mid-range
+      { name: "Smartwatch", pricePKR: 43000, image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=300&q=80" },
+      { name: "Trekking Shoes", pricePKR: 7500, image: "https://images.unsplash.com/photo-1465101178521-c8c9c8890c02?auto=format&fit=crop&w=300&q=80" },
+      { name: "Cricket Bat", pricePKR: 12000, image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=300&q=80" },
+      { name: "Concert Ticket", pricePKR: 8500, image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80" },
+      { name: "Tablet", pricePKR: 44000, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=300&q=80" },
+      { name: "Designer Shoes", pricePKR: 21000, image: "https://images.unsplash.com/photo-1517263904808-5dc0d6c04b23?auto=format&fit=crop&w=300&q=80" },
+      { name: "Road Bicycle", pricePKR: 55000, image: "https://images.unsplash.com/photo-1526178613658-3c1873b9ff9e?auto=format&fit=crop&w=300&q=80" },
+      { name: "Noise Cancelling Headphones", pricePKR: 38000, image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=300&q=80" },
+      { name: "Espresso Machine", pricePKR: 65000, image: "https://images.unsplash.com/photo-1465101178521-c8c9c8890c02?auto=format&fit=crop&w=300&q=80" },
+      { name: "Refrigerator", pricePKR: 89000, image: "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?auto=format&fit=crop&w=300&q=80" },
+
+      // Expensive
+      { name: "Scooter", pricePKR: 110000, image: "https://images.unsplash.com/photo-1509927083521-cb8495a84907?auto=format&fit=crop&w=300&q=80" },
+      { name: "CNG Rickshaw", pricePKR: 285000, image: "https://images.unsplash.com/photo-1542293787938-c9e299b88096?auto=format&fit=crop&w=300&q=80" },
+      { name: "Wedding Reception", pricePKR: 860000, image: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=300&q=80" },
+      { name: "Speed Boat", pricePKR: 1850000, image: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=300&q=80" },
+      { name: "Farmhouse Land", pricePKR: 6000000, image: "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?auto=format&fit=crop&w=300&q=80" },
+      { name: "Private Chef (Annual)", pricePKR: 2500000, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80" },
+      { name: "Designer Sofa Set", pricePKR: 420000, image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=300&q=80" },
+      { name: "Personal Gym Setup", pricePKR: 950000, image: "https://images.unsplash.com/photo-1517960413843-0aee8e2d471c?auto=format&fit=crop&w=300&q=80" },
+      { name: "MacBook Pro", pricePKR: 580000, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=300&q=80" },
+      { name: "Drone Camera", pricePKR: 175000, image: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=300&q=80" },
+
+      // Luxury
+      { name: "Imported Car", pricePKR: 12400000, image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=300&q=80" },
+      { name: "Golf Membership", pricePKR: 5000000, image: "https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=300&q=80" },
+      { name: "Luxury Watch", pricePKR: 3900000, image: "https://images.unsplash.com/photo-1512499617640-c2f999098c72?auto=format&fit=crop&w=300&q=80" },
+      { name: "Vacation in Maldives", pricePKR: 2700000, image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80" },
+      { name: "Rolex Submariner", pricePKR: 5400000, image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=300&q=80" },
+      { name: "Sports Bike", pricePKR: 1850000, image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=300&q=80" },
+      { name: "Luxury Tour Bus", pricePKR: 7900000, image: "https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=300&q=80" },
+      { name: "Hummer SUV", pricePKR: 9990000, image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=300&q=80" },
+      { name: "Beach-side Villa", pricePKR: 57000000, image: "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?auto=format&fit=crop&w=300&q=80" },
+      { name: "2024 Model SUV", pricePKR: 17900000, image: "https://images.unsplash.com/photo-1512499617640-c2f999098c72?auto=format&fit=crop&w=300&q=80" },
+
+      // Ultra-Luxury
+      { name: "Football Club", pricePKR: 38000000000, image: "https://images.unsplash.com/photo-1509927083521-cb8495a84907?auto=format&fit=crop&w=300&q=80" },
+      { name: "Medium Private Jet", pricePKR: 430000000, image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80" },
+      { name: "Island in Maldives", pricePKR: 1920000000, image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=300&q=80" },
+      { name: "Space Flight Ticket", pricePKR: 87000000, image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=300&q=80" },
+      { name: "International Hotel Chain", pricePKR: 8700000000, image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80" },
+      { name: "Antarctica Research Station", pricePKR: 5500000000, image: "https://images.unsplash.com/photo-1512684464380-15b4f4a4d944?auto=format&fit=crop&w=300&q=80" },
+      { name: "SpaceX Starship", pricePKR: 22000000000, image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80" },
+      { name: "Olympics Bid", pricePKR: 110000000000, image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=300&q=80" },
+      { name: "Megacity", pricePKR: 1300000000000, image: "https://images.unsplash.com/photo-1517960413843-0aee8e2d471c?auto=format&fit=crop&w=300&q=80" },
+      { name: "Moon Base", pricePKR: 890000000000, image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=300&q=80" }
+    ];
+
+    function toPKR(priceUSD) {
+      return Math.round(priceUSD * PKR_PER_USD);
+    }
+    function formatPKR(amount) {
+      return "₨" + amount.toLocaleString('en-PK');
+    }
+
+    let allItems = [];
+    allItems = [
+      ...baseItems.map(item => ({
+        name: item.name,
+        pricePKR: toPKR(item.priceUSD),
+        image: item.image
+      })),
+      ...moreItems
+    ];
+
+    // App State
+    let remaining = initialMoney;
+    let spent = 0;
+    let itemCounts = Array(allItems.length).fill(0);
+
+    // Render Items
+    const itemsContainer = document.getElementById("itemsList");
+
+    function renderItems() {
+      itemsContainer.innerHTML = '';
+      allItems.forEach((item, idx) => {
+        const count = itemCounts[idx];
+        const elem = document.createElement("div");
+        elem.className = "item-card bg-white rounded-xl p-4 shadow flex flex-col items-center";
+
+        elem.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded mb-2 border border-gray-200">
+          <h2 class="font-semibold text-base text-gray-800 mb-1 text-center">${item.name}</h2>
+          <div class="text-green-600 font-bold mb-2 text-lg">${formatPKR(item.pricePKR)}</div>
+          <div class="flex items-center space-x-2 my-2">
+            <button class="addBtn bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1 font-bold text-xl shadow" data-idx="${idx}" aria-label="Add One"><i class="fa fa-plus"></i></button>
+            <span class="w-8 text-center text-gray-700 font-bold countLabel">${count}</span>
+            <button class="removeBtn bg-red-400 hover:bg-red-500 text-white rounded px-3 py-1 font-bold text-xl shadow" data-idx="${idx}" aria-label="Remove One"><i class="fa fa-minus"></i></button>
+          </div>
+        `;
+        itemsContainer.appendChild(elem);
+
+        // Button listeners
+        elem.querySelector(".addBtn").onclick = () => handlePurchase(idx);
+        elem.querySelector(".removeBtn").onclick = () => handleRemove(idx);
+      });
+    }
+
+    // Update Money and Progress
+    function updateMoneyDisplay() {
+      document.getElementById("money").textContent = formatPKR(remaining);
+      document.getElementById("spentDisplay").textContent = formatPKR(spent);
+      document.getElementById("remainingDisplay").textContent = formatPKR(remaining);
+      // Progress percentage
+      let spentPc = (spent / initialMoney) * 100;
+      document.getElementById("spentBar").style.width = Math.min(spentPc, 100) + "%";
+      // Animate
+      document.getElementById("money").classList.add("text-red-500");
+      setTimeout(() => {document.getElementById("money").classList.remove("text-red-500");}, 250);
+    }
+
+    // Purchase/Remove
+    function handlePurchase(idx) {
+      const price = allItems[idx].pricePKR;
+      if (remaining >= price) {
+        itemCounts[idx]++;
+        spent += price;
+        remaining -= price;
+        renderItems();
+        updateMoneyDisplay();
+      }
+    }
+    function handleRemove(idx) {
+      if (itemCounts[idx] > 0) {
+        const price = allItems[idx].pricePKR;
+        itemCounts[idx]--;
+        spent -= price;
+        remaining += price;
+        renderItems();
+        updateMoneyDisplay();
+      }
+    }
+
+    // Reset
+    document.getElementById("resetBtn").onclick = function() {
+      remaining = initialMoney;
+      spent = 0;
+      itemCounts = Array(allItems.length).fill(0);
+      renderItems();
+      updateMoneyDisplay();
+    }
+
+    // On load
+    renderItems();
+    updateMoneyDisplay();
+  </script>
+</body>
+</html>
